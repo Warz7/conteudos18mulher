@@ -1,0 +1,8 @@
+{
+  "name": "Verificação 18+",
+  "description": "Acesso Restrito | Verificação de Localização e Biometria",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}

